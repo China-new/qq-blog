@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}写文章 · 简易博客{% endblock %}
+{% block page_title %}写文章{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 style="margin-top:0;">发布新文章</h2>
+    <form method="post" enctype="multipart/form-data">
+        <label class="form-label" for="title">标题</label>
+        <input id="title" name="title" type="text" placeholder="给文章起个标题…" required>
+
+        <label class="form-label" for="category">分类</label>
+        <select id="category" name="category">
+            {% for c in categories %}
+            <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+        </select>
+
+        <label class="form-label" for="tags">标签（逗号分隔，最多 8 个）</label>
+        <input id="tags" name="tags" type="text" placeholder="例如：Python, Flask, 学习">
+
+        <label class="form-label" for="content">正文</label>
+        <textarea id="content" name="content" placeholder="写点什么吧…"></textarea>
+
+        <label class="form-label" for="media">附加图片 / 视频（可选）</label>
+        <input id="media" name="media" type="file" accept="image/*,video/*">
+
+        <div style="display:flex;gap:10px;margin-top:18px;">
+            <button class="btn btn-primary" type="submit">发布文章</button>
+            <a class="btn btn-ghost" href="/">取消</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

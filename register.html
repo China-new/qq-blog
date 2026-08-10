@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}注册 · 简易博客{% endblock %}
+{% block page_title %}注册{% endblock %}
+{% block content %}
+<div class="card" style="max-width:420px;margin:40px auto;">
+    <h2 style="margin-top:0;">创建账号</h2>
+    <p style="color:var(--text-sub);font-size:13.5px;margin-top:0;">加入简易博客，开始记录与分享</p>
+    <form method="post">
+        <label class="form-label" for="username">用户名</label>
+        <input id="username" name="username" type="text" placeholder="请输入用户名" required autofocus>
+        <label class="form-label" for="password">密码</label>
+        <input id="password" name="password" type="password" placeholder="请输入密码" required>
+        <button class="btn btn-primary" style="width:100%;margin-top:8px;" type="submit">注 册</button>
+    </form>
+    <div style="margin-top:16px;font-size:13.5px;color:var(--text-sub);">
+        已有账号？<a href="/login">直接登录</a>
+    </div>
+</div>
+{% endblock %}

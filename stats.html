@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}访问统计 · 简易博客{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card">
+    <h2>📈 访问统计</h2>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-num">{{ total }}</div><div class="stat-lbl">累计访问(次)</div></div>
+      <div class="stat-box"><div class="stat-num">{{ daily|length }}</div><div class="stat-lbl">有记录的日数</div></div>
+      <div class="stat-box"><div class="stat-num">{{ devices|length }}</div><div class="stat-lbl">设备类型数</div></div>
+    </div>
+    <h3 style="margin-top:24px">近 30 日访问趋势</h3>
+    <div class="bars">
+      {% for d in daily %}
+        <div class="bar-item" title="{{ d.date }}: {{ d.count }}">
+          <div class="bar" style="height:{{ [15, d.count*6]|max }}px"></div>
+          <div class="bar-date">{{ d.date[5:] }}</div>
+        </div>
+      {% else %}
+        <p class="meta">暂无访问数据，去文章详情页逛逛吧。</p>
+      {% endfor %}
+    </div>
+    <div class="two-col">
+      <div>
+        <h3>🔥 热门文章(Top10)</h3>
+        <ul class="rank">
+          {% for p in hot %}
+            <li><span>{{ loop.index }}</span> {{ p.title }} <em>{{ p.vc }} 次访问</em></li>
+          {% else %}
+            <li class="meta">暂无数据</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div>
+        <h3>📱 设备分布</h3>
+        <ul class="rank">
+          {% for d in devices %}
+            <li><span>•</span> {{ d.name }} <em>{{ d.count }}</em></li>
+          {% else %}
+            <li class="meta">暂无数据</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% if not admin %}<p class="meta" style="margin-top:18px">仅管理员可见原始数据明细。</p>{% endif %}
+  </div>
+</div>
+<style>
+  .stat-grid{display:flex;gap:16px;flex-wrap:wrap}
+  .stat-box{flex:1;min-width:120px;background:rgba(18,183,245,.08);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center}
+  .stat-num{font-size:28px;font-weight:700;color:var(--qq-blue)}
+  .stat-lbl{font-size:12px;color:var(--text-muted);margin-top:4px}
+  .bars{display:flex;align-items:flex-end;gap:6px;height:160px;overflow-x:auto;padding-top:10px}
+  .bar-item{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:34px}
+  .bar{width:22px;background:linear-gradient(180deg,var(--qq-blue),var(--qq-blue-hover));border-radius:6px 6px 0 0;transition:.3s}
+  .bar-date{font-size:10px;color:var(--text-muted);writing-mode:vertical-lr;text-orientation:mixed}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:18px}
+  @media(max-width:700px){.two-col{grid-template-columns:1fr}}
+  ul.rank{list-style:none;padding:0;margin:0}
+  ul.rank li{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px}
+  ul.rank li span{display:inline-flex;width:22px;height:22px;background:rgba(18,183,245,.15);color:var(--qq-blue);border-radius:50%;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+  ul.rank li em{margin-left:auto;color:var(--text-muted);font-style:normal;font-size:12px}
+</style>
+{% endblock %}

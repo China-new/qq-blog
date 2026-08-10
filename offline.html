@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}离线 · 简易博客{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card" style="text-align:center;padding:48px 24px">
+    <div style="font-size:48px">📡</div>
+    <h2>当前处于离线状态</h2>
+    <p class="meta">检测到网络已断开，无法加载最新内容。请检查网络连接后刷新页面。</p>
+    <button class="btn" onclick="location.reload()">重新加载</button>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}登录 · 简易博客{% endblock %}
+{% block page_title %}登录{% endblock %}
+{% block content %}
+<div class="card" style="max-width:420px;margin:40px auto;">
+    <h2 style="margin-top:0;">欢迎回来</h2>
+    <p style="color:var(--text-sub);font-size:13.5px;margin-top:0;">登录后即可发布文章、评论与点赞</p>
+    <form method="post">
+        <label class="form-label" for="username">用户名</label>
+        <input id="username" name="username" type="text" placeholder="请输入用户名" required autofocus>
+        <label class="form-label" for="password">密码</label>
+        <input id="password" name="password" type="password" placeholder="请输入密码" required>
+        <button class="btn btn-primary" style="width:100%;margin-top:8px;" type="submit">登 录</button>
+    </form>
+    <div style="margin-top:16px;font-size:13.5px;color:var(--text-sub);">
+        还没有账号？<a href="/register">立即注册</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}管理后台 · 简易博客{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card">
+    <h2>🛡️ 管理后台</h2>
+    <p class="meta">管理员可对用户进行封禁/解禁，并删除任意文章、评论、留言。</p>
+    <h3>用户列表</h3>
+    <table class="admin-table">
+      <thead><tr><th>用户名</th><th>角色</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead>
+      <tbody>
+      {% for u in users %}
+        <tr>
+          <td>{{ u.username }}</td>
+          <td>{{ u.role or 'user' }}</td>
+          <td>{% if u.banned %}<span class="tag" style="background:rgba(255,80,80,.15);color:#ff6b6b">已封禁</span>{% else %}正常{% endif %}</td>
+          <td>{{ u.created_at[:10] if u.created_at else '' }}</td>
+          <td>
+            {% if u.banned %}
+              <form method="post" action="{{ url_for('admin.unban_user', username=u.username) }}" style="display:inline">
+                <button class="btn btn-sm">解禁</button></form>
+            {% else %}
+              <form method="post" action="{{ url_for('admin.ban_user', username=u.username) }}" style="display:inline">
+                <button class="btn btn-sm btn-danger">封禁</button></form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <h3 style="margin-top:28px">文章管理</h3>
+    <table class="admin-table">
+      <thead><tr><th>#</th><th>标题</th><th>作者</th><th>时间</th><th>操作</th></tr></thead>
+      <tbody>
+      {% for p in posts %}
+        <tr>
+          <td>{{ p.id }}</td>
+          <td>{{ p.title }}</td>
+          <td>{{ p.author }}</td>
+          <td>{{ p.created_at[:10] if p.created_at else '' }}</td>
+          <td>
+            <form method="post" action="{{ url_for('admin.delete_post', pid=p.id) }}" style="display:inline">
+              <button class="btn btn-sm btn-danger" onclick="return confirm('确认删除该文章？')">删除</button></form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<style>
+  .admin-table{width:100%;border-collapse:collapse;font-size:14px}
+  .admin-table th,.admin-table td{padding:10px 8px;border-bottom:1px solid var(--border);text-align:left}
+  .admin-table th{color:var(--text-muted);font-weight:500}
+  .btn-sm{padding:5px 12px;font-size:12px}
+  .btn-danger{background:#ff6b6b}
+  .btn-danger:hover{background:#ff5252}
+</style>
+{% endblock %}

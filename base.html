@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
+    <meta name="color-scheme" content="dark light">
+    <meta name="theme-color" content="#12B7F5">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+    <title>{% block title %}简易博客{% endblock %}</title>
+    <style>
+        /* ========== QQ 设计语言 Design Tokens ========== */
+        :root {
+            /* 品牌色 */
+            --qq-blue: #12B7F5;
+            --qq-blue-press: #0E9BD6;
+            --qq-blue-hover: #33C2FF;
+            --qq-blue-bg: rgba(18, 183, 245, 0.12);
+            --qq-blue-line: rgba(18, 183, 245, 0.35);
+
+            /* 功能色 */
+            --qq-success: #2ECC71;
+            --qq-warn: #F5A623;
+            --qq-danger: #F55656;
+            --qq-danger-press: #D63B3B;
+            --qq-unread: #F55656;   /* 未读红点 */
+
+            /* 半径 */
+            --r-card: 16px;
+            --r-pill: 999px;
+            --r-sm: 10px;
+
+            /* 阴影 */
+            --shadow-card: 0 4px 16px rgba(15, 20, 25, 0.24);
+            --shadow-pop: 0 8px 30px rgba(18, 183, 245, 0.16);
+
+            /* 过渡 */
+            --t: 200ms cubic-bezier(.2,.8,.2,1);
+        }
+
+        /* ===== 深色主题（默认，贴合 QQ 频道深色底色）===== */
+        [data-theme="dark"] {
+            --bg: #0F1419;
+            --bg-elev: #1C2128;
+            --bg-side: #151A20;
+            --bg-input: #232A32;
+            --text: #E8EAED;
+            --text-sub: #8A9099;
+            --border: #2A313A;
+            --hover: #232A32;
+            --code-bg: #11161C;
+        }
+
+        /* ===== 浅色主题（QQ 亮色模式）===== */
+        [data-theme="light"] {
+            --bg: #F4F6F8;
+            --bg-elev: #FFFFFF;
+            --bg-side: #FFFFFF;
+            --bg-input: #F0F2F5;
+            --text: #1F2329;
+            --text-sub: #6B7280;
+            --border: #E5E7EB;
+            --hover: #F0F4FF;
+            --code-bg: #F6F8FA;
+            --shadow-card: 0 4px 16px rgba(15, 20, 25, 0.06);
+        }
+
+        /* ========== Reset ========== */
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", "SF Pro Text",
+                         -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 15px;
+            -webkit-font-smoothing: antialiased;
+            transition: background var(--t), color var(--t);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        a { color: var(--qq-blue); text-decoration: none; }
+        a:hover { color: var(--qq-blue-hover); }
+
+        /* ========== 布局：左侧频道栏 + 主区 ========== */
+        .app-shell { display: flex; min-height: 100vh; }
+
+        /* 左侧频道导航（QQ 频道风格） */
+        .sidebar {
+            width: 232px; flex-shrink: 0;
+            background: var(--bg-side);
+            border-right: 1px solid var(--border);
+            padding: 18px 12px 88px;   /* 底部留位给移动端 tab 不冲突 */
+            position: sticky; top: 0; height: 100vh; overflow-y: auto;
+        }
+        .brand {
+            display: flex; align-items: center; gap: 10px;
+            padding: 6px 10px 16px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+        }
+        .brand-logo {
+            width: 34px; height: 34px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--qq-blue), #6CE0FF);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 700; font-size: 17px;
+            box-shadow: 0 4px 12px rgba(18,183,245,.35);
+        }
+        .brand-name { font-size: 16px; font-weight: 600; letter-spacing: .3px; }
+
+        .nav-group-title {
+            font-size: 11px; color: var(--text-sub);
+            padding: 8px 12px 6px; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 12px; margin: 2px 0;
+            border-radius: 10px; cursor: pointer;
+            color: var(--text); font-size: 14.5px; font-weight: 500;
+            transition: background var(--t), color var(--t);
+            border: none; background: transparent; width: 100%; text-align: left;
+            position: relative;
+        }
+        .nav-item:hover { background: var(--hover); }
+        .nav-item.active { background: var(--qq-blue-bg); color: var(--qq-blue); }
+        .nav-item .ico {
+            width: 22px; height: 22px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-sub);
+        }
+        .nav-item.active .ico { color: var(--qq-blue); }
+        .nav-item .ico svg { width: 18px; height: 18px; }
+        /* 未读红点 / 数字徽标 */
+        .badge-unread {
+            margin-left: auto; min-width: 18px; height: 18px; padding: 0 5px;
+            border-radius: var(--r-pill); background: var(--qq-unread); color: #fff;
+            font-size: 11px; font-weight: 700; display: inline-flex;
+            align-items: center; justify-content: center; line-height: 1;
+            box-shadow: 0 0 0 2px var(--bg-side);
+        }
+        .badge-dot {
+            margin-left: auto; width: 8px; height: 8px; border-radius: 50%;
+            background: var(--qq-blue); box-shadow: 0 0 8px var(--qq-blue);
+        }
+
+        .side-foot {
+            margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--qq-blue), rgb({{ cur_grad|default('135,183,245') }}));
+            color: #fff; display: flex; align-items: center; justify-content: center;
+            font-weight: 600; font-size: 15px; flex-shrink: 0;
+            background-size: cover; background-position: center;
+            overflow: hidden;
+        }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar.lg { width: 64px; height: 64px; font-size: 24px; }
+        .avatar.xl { width: 96px; height: 96px; font-size: 34px; }
+        .side-foot .uname { font-size: 13.5px; font-weight: 600; }
+        .side-foot .usub { font-size: 11.5px; color: var(--text-sub); display: flex; align-items: center; gap: 5px; }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--qq-success); display: inline-block; box-shadow: 0 0 6px var(--qq-success); }
+
+        /* 主区 */
+        .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .topbar {
+            height: 56px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 28px;
+            background: var(--bg-elev);
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 50;
+        }
+        .topbar .page-title { font-size: 16px; font-weight: 600; }
+        .topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+        .content { padding: 24px 28px 40px; max-width: 960px; width: 100%; margin: 0 auto; }
+
+        /* ========== 按钮 ========== */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 8px 18px; border-radius: var(--r-pill); border: none;
+            font-size: 14px; font-weight: 500; cursor: pointer;
+            transition: background var(--t), transform var(--t), box-shadow var(--t);
+            line-height: 1.2;
+        }
+        .btn-primary { background: var(--qq-blue); color: #fff; box-shadow: 0 4px 14px rgba(18,183,245,.28); }
+        .btn-primary:hover { background: var(--qq-blue-hover); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(18,183,245,.4); }
+        .btn-primary:active { background: var(--qq-blue-press); }
+        .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--hover); border-color: var(--qq-blue-line); color: var(--qq-blue); }
+        .btn-danger { background: var(--qq-danger); color: #fff; }
+        .btn-danger:hover { background: var(--qq-danger-press); }
+        .btn-sm { padding: 5px 12px; font-size: 12.5px; }
+
+        .theme-btn {
+            width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border);
+            background: var(--bg-input); color: var(--text); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
+            transition: background var(--t), transform var(--t);
+        }
+        .theme-btn:hover { background: var(--hover); transform: rotate(15deg); }
+
+        /* ========== 卡片 ========== */
+        .card {
+            background: var(--bg-elev); border: 1px solid var(--border);
+            border-radius: var(--r-card); padding: 22px; margin-bottom: 18px;
+            transition: border-color var(--t), transform var(--t), box-shadow var(--t);
+        }
+        .card-hover:hover { border-color: var(--qq-blue-line); box-shadow: var(--shadow-pop); transform: translateY(-2px); }
+
+        /* ========== 表单 ========== */
+        .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-sub); margin: 14px 0 6px; }
+        .form-label:first-child { margin-top: 0; }
+        input[type="text"], input[type="password"], input[type="search"],
+        textarea, select {
+            width: 100%; padding: 11px 14px; border-radius: 12px;
+            border: 1px solid var(--border); background: var(--bg-input);
+            color: var(--text); font-size: 14.5px; font-family: inherit;
+            transition: border-color var(--t), box-shadow var(--t);
+        }
+        textarea { min-height: 130px; resize: vertical; line-height: 1.65; }
+        input:focus, textarea:focus, select:focus {
+            outline: none; border-color: var(--qq-blue);
+            box-shadow: 0 0 0 3px rgba(18,183,245,.22);
+        }
+
+        /* ========== 标签（胶囊）========== */
+        .tag {
+            display: inline-flex; align-items: center;
+            background: var(--qq-blue-bg); color: var(--qq-blue);
+            padding: 4px 12px; border-radius: var(--r-pill);
+            font-size: 12px; font-weight: 500; margin: 0 6px 6px 0;
+            border: 1px solid transparent;
+        }
+        .tag.cat { background: rgba(46,204,113,.12); color: var(--qq-success); }
+        .cat-chip {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 12px; color: var(--text-sub);
+            background: var(--bg-input); padding: 3px 10px; border-radius: var(--r-pill);
+            margin-right: 8px; margin-bottom: 6px;
+        }
+
+        .meta { font-size: 12.5px; color: var(--text-sub); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .meta .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--text-sub); display: inline-block; }
+
+        /* ========== 文章卡片 ========== */
+        .post-title { font-size: 19px; font-weight: 600; margin: 0 0 8px; }
+        .post-title a { color: var(--text); }
+        .post-title a:hover { color: var(--qq-blue); }
+        .post-body { color: var(--text); opacity: .9; font-size: 14.5px;
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .post-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; gap: 10px; flex-wrap: wrap; }
+        .post-actions { display: flex; gap: 8px; }
+
+        /* ========== 消息提示（Toast）========== */
+        .flash-wrap { position: fixed; top: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+        .flash {
+            padding: 11px 18px; border-radius: 12px; font-size: 13.5px; font-weight: 500;
+            color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.25);
+            animation: slideIn .25s ease;
+        }
+        .flash-success { background: var(--qq-success); }
+        .flash-danger { background: var(--qq-danger); }
+        .flash-warning { background: var(--qq-warn); color: #3d2c00; }
+        .flash-info { background: var(--qq-blue); }
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+        /* ========== 评论（QQ 气泡）========== */
+        .comment { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+        .comment:last-child { border-bottom: none; }
+        .comment .c-body { flex: 1; min-width: 0; }
+        .c-bubble {
+            background: var(--bg-input); border-radius: 4px 14px 14px 14px;
+            padding: 10px 14px; font-size: 14px; white-space: pre-wrap; word-break: break-word;
+        }
+        .c-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+        .c-name { font-weight: 600; font-size: 13.5px; color: var(--qq-blue); }
+        .c-time { font-size: 11.5px; color: var(--text-sub); }
+        .c-actions { margin-top: 6px; display: flex; gap: 6px; }
+        .c-form { margin-top: 8px; }
+
+        /* ========== 筛选栏 ========== */
+        .filter-bar {
+            display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+            background: var(--bg-elev); border: 1px solid var(--border);
+            border-radius: var(--r-card); padding: 14px 18px; margin-bottom: 20px;
+        }
+        .filter-bar .form-label { margin: 0 6px 0 0; }
+        .search-input { flex: 1; min-width: 200px; }
+        .filter-bar select { width: auto; min-width: 140px; }
+
+        /* ========== 热门排行 ========== */
+        .hot-list { list-style: none; padding: 0; margin: 0; }
+        .hot-list li { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+        .hot-list li:last-child { border-bottom: none; }
+        .hot-rank {
+            width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; color: #fff; background: var(--text-sub);
+        }
+        .hot-rank.top { background: var(--qq-blue); }
+        .hot-list a { color: var(--text); font-size: 13.5px; }
+        .hot-list a:hover { color: var(--qq-blue); }
+
+        /* ========== 媒体 ========== */
+        .media-box { margin-top: 14px; }
+        img.post-media, video.post-media { max-width: 100%; border-radius: 12px; border: 1px solid var(--border); }
+
+        /* 空状态 */
+        .empty { text-align: center; padding: 40px 20px; color: var(--text-sub); }
+        .empty .empty-ico { font-size: 40px; margin-bottom: 12px; }
+
+        /* ========== 留言板：消息列表式 ========== */
+        .msg-session { display: flex; flex-direction: column; gap: 4px; }
+        .msg-day-sep {
+            text-align: center; font-size: 11.5px; color: var(--text-sub);
+            margin: 10px 0; position: relative;
+        }
+        .msg-day-sep::before, .msg-day-sep::after {
+            content: ""; position: absolute; top: 50%; width: 30%; height: 1px;
+            background: var(--border);
+        }
+        .msg-day-sep::before { left: 0; } .msg-day-sep::after { right: 0; }
+        .msg-row { display: flex; gap: 12px; padding: 12px 4px; align-items: flex-start; }
+        .msg-row .msg-main { flex: 1; min-width: 0; }
+        .msg-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+        .msg-name { font-weight: 600; font-size: 14px; color: var(--qq-blue); }
+        .msg-time { font-size: 11.5px; color: var(--text-sub); }
+        .msg-bubble {
+            background: var(--bg-input); border-radius: 4px 14px 14px 14px;
+            padding: 10px 14px; font-size: 14px; white-space: pre-wrap; word-break: break-word;
+            line-height: 1.65;
+        }
+        .msg-empty { text-align: center; padding: 40px 20px; color: var(--text-sub); }
+        .msg-empty .empty-ico { font-size: 40px; margin-bottom: 10px; }
+
+        /* ========== 移动端底部 Tab 栏（QQ 手机版风格）========== */
+        .mobile-tabbar { display: none; }
+
+        @media (max-width: 760px) {
+            .sidebar { display: none; }
+            .content { padding: 16px; padding-bottom: 90px; }
+            .topbar { padding: 0 16px; }
+            /* 底部 Tab 栏 */
+            .mobile-tabbar {
+                display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+                height: 60px; padding-bottom: env(safe-area-inset-bottom);
+                background: var(--bg-elev); border-top: 1px solid var(--border);
+                z-index: 100;
+            }
+            .mobile-tabbar a {
+                flex: 1; display: flex; flex-direction: column; align-items: center;
+                justify-content: center; gap: 2px; color: var(--text-sub);
+                font-size: 11px; text-decoration: none; position: relative;
+            }
+            .mobile-tabbar a.active { color: var(--qq-blue); }
+            .mobile-tabbar .mt-ico { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+            .mobile-tabbar .mt-ico svg { width: 20px; height: 20px; }
+            .mobile-tabbar .mt-badge {
+                position: absolute; top: 4px; right: calc(50% - 18px);
+                min-width: 16px; height: 16px; padding: 0 4px; border-radius: var(--r-pill);
+                background: var(--qq-unread); color: #fff; font-size: 10px; font-weight: 700;
+                display: inline-flex; align-items: center; justify-content: center; line-height: 1;
+            }
+        }
+    </style>
+    <!-- 尽早执行主题初始化，避免 FOUC -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('theme');
+                if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'dark';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+        })();
+    </script>
+</head>
+<body>
+<div class="app-shell">
+    <!-- 左侧频道导航 -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-logo">Q</div>
+            <div class="brand-name">简易博客</div>
+        </div>
+
+        <div class="nav-group-title">主菜单</div>
+        <a class="nav-item {% if request.path=='/' %}active{% endif %}" href="/">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9 21v-6h6v6"/></svg></span>首页
+        </a>
+        <a class="nav-item {% if request.path=='/guestbook' %}active{% endif %}" href="/guestbook" id="navGuestbook">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-4.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>留言板
+            {% if gb_unread|default(0) > 0 %}<span class="badge-unread">{{ gb_unread }}</span>{% endif %}
+        </a>
+
+        <div class="nav-group-title">创作</div>
+        <a class="nav-item" href="/post/new">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></span>写文章
+            <span class="badge-dot"></span>
+        </a>
+        {% if now_user %}
+        <a class="nav-item {% if request.path=='/user/'~now_user %}active{% endif %}" href="/user/{{ now_user }}">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>我的主页
+        </a>
+        {% endif %}
+        {% if is_admin|default(false) %}
+        <div class="nav-group-title">管理</div>
+        <a class="nav-item {% if '/admin' in request.path %}active{% endif %}" href="/admin/">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.5 9.4 8 11 4.5-1.6 8-6 8-11V5l-8-3z"/><path d="M9 12l2 2 4-4"/></svg></span>管理后台
+        </a>
+        <a class="nav-item {% if '/stats' in request.path %}active{% endif %}" href="/stats/">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></span>访问统计
+        </a>
+        {% endif %}
+
+        <div class="nav-group-title">频道</div>
+        {% for c in CATEGORIES %}
+        <a class="nav-item" href="/?category={{ c }}">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></span>{{ c }}
+        </a>
+        {% endfor %}
+
+        <div style="flex:1"></div>
+        <div class="side-foot">
+            {% if now_user %}
+            <div class="avatar" {% if cur_avatar %}style="background-image:url('/uploads/{{ cur_avatar }}');"{% endif %}>
+                {% if not cur_avatar %}{{ now_user[0]|upper }}{% endif %}
+            </div>
+            <div style="flex:1;min-width:0">
+                <div class="uname">{{ now_user }}</div>
+                <div class="usub"><span class="status-dot"></span>在线</div>
+            </div>
+            <a class="btn btn-ghost btn-sm" href="/logout">退出</a>
+            {% else %}
+            <div class="avatar">Q</div>
+            <div style="flex:1;min-width:0">
+                <div class="uname">游客</div>
+                <div class="usub"><span class="status-dot" style="background:var(--text-sub);box-shadow:none;"></span>未登录</div>
+            </div>
+            <a class="btn btn-primary btn-sm" href="/login">登录</a>
+            {% endif %}
+        </div>
+    </aside>
+
+    <!-- 主区 -->
+    <div class="main">
+        <header class="topbar">
+            <div class="page-title">{% block page_title %}{% endblock %}</div>
+            <div class="topbar-actions">
+                <button class="theme-btn" id="themeBtn" title="切换主题">🌙</button>
+                {% if not now_user %}
+                <a class="btn btn-ghost btn-sm" href="/register">注册</a>
+                <a class="btn btn-primary btn-sm" href="/login">登录</a>
+                {% endif %}
+            </div>
+        </header>
+
+        <main class="content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<!-- 移动端底部 Tab 栏（QQ 手机版：首页 / 留言板 / 写文章 / 我的） -->
+<nav class="mobile-tabbar">
+    <a href="/" class="{% if request.path=='/' %}active{% endif %}">
+        <span class="mt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9 21v-6h6v6"/></svg></span>首页
+    </a>
+    <a href="/guestbook" class="{% if request.path=='/guestbook' %}active{% endif %}" id="tabGuestbook">
+        留言板{% if gb_unread|default(0) > 0 %}<span class="mt-badge">{{ gb_unread }}</span>{% endif %}
+    </a>
+    <a href="/post/new" class="{% if request.path=='/post/new' %}active{% endif %}">
+        <span class="mt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></span>发布
+    </a>
+    {% if now_user %}
+    <a href="/user/{{ now_user }}" class="{% if request.path=='/user/'~now_user %}active{% endif %}">
+        <span class="mt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>我的
+    </a>
+    {% else %}
+    <a href="/login" class="">
+        <span class="mt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>我的
+    </a>
+    {% endif %}
+</nav>
+
+<div class="flash-wrap">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+</div>
+
+<script>
+    // 主题切换
+    var btn = document.getElementById('themeBtn');
+    function applyTheme(t) {
+        document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem('theme', t);
+        if (btn) btn.textContent = t === 'dark' ? '🌙' : '☀️';
+    }
+    var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    if (btn) btn.textContent = cur === 'dark' ? '🌙' : '☀️';
+    if (btn) btn.addEventListener('click', function () {
+        var now = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        applyTheme(now);
+    });
+    // 自动隐藏 toast
+    setTimeout(function () {
+        document.querySelectorAll('.flash').forEach(function (el) {
+            el.style.transition = 'opacity .4s'; el.style.opacity = '0';
+            setTimeout(function () { el.remove(); }, 400);
+        });
+    }, 3200);
+
+    // 进入留言板时标记已读（清零红点）
+    try {
+        if (location.pathname === '/guestbook') {
+            fetch('/guestbook/seen', {method:'POST'}).then(function(){ });
+        }
+    } catch(e) {}
+
+    // ===== 未读留言轮询：新留言到达时弹出 QQ 风格 Toast =====
+    var lastKnown = {{ gb_unread|default(0) }};
+    function showUnreadToast(n) {
+        var wrap = document.querySelector('.flash-wrap');
+        if (!wrap) { wrap = document.createElement('div'); wrap.className='flash-wrap';
+            wrap.style.cssText='position:fixed;top:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px;';
+            document.body.appendChild(wrap); }
+        var el = document.createElement('div');
+        el.className = 'flash flash-info';
+        el.style.cssText='padding:11px 18px;border-radius:12px;font-size:13.5px;font-weight:500;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:slideIn .25s ease;cursor:pointer;';
+        el.textContent = '💬 有 ' + n + ' 条新留言，快去查看';
+        el.addEventListener('click', function(){ location.href='/guestbook'; });
+        wrap.appendChild(el);
+        setTimeout(function(){ el.style.transition='opacity .4s'; el.style.opacity='0';
+            setTimeout(function(){ el.remove(); }, 400); }, 4000);
+    }
+    function pollUnread() {
+        if (location.pathname === '/guestbook') return; // 已在留言板则不打扰
+        fetch('/api/unread').then(function(r){ return r.json(); }).then(function(d){
+            var n = (d.unread|0);
+            if (n > lastKnown) { showUnreadToast(n - lastKnown); }
+            lastKnown = n;
+        }).catch(function(){});
+    }
+    setInterval(pollUnread, 15000); // 每 15 秒轮询一次
+
+    // ===== PWA：注册 Service Worker（支持“添加到主屏幕”+ 离线提示）=====
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+            navigator.serviceWorker.register('/sw.js').catch(function () {});
+        });
+    }
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

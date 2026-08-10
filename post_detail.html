@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} · 简易博客{% endblock %}
+{% block page_title %}文章详情{% endblock %}
+{% block content %}
+<article class="card">
+    <h1 style="margin:0 0 10px;font-size:24px;">{{ post.title }}</h1>
+    <div class="meta">
+        <span>👤 {{ post.author }}</span>
+        <span class="dot"></span>
+        <span>🕘 {{ post.created_at[:16].replace('T',' ') }}</span>
+        {% if post.category %}<span class="dot"></span><span class="cat-chip">📁 {{ post.category }}</span>{% endif %}
+        <span class="dot"></span><span>👁️ {{ post.views or 0 }}</span>
+        <span class="dot"></span><span>❤️ {{ post.likes|length }}</span>
+        <span class="dot"></span><span>💬 {{ comments|length }}</span>
+        {% if post.updated_at %}<span class="dot"></span><span style="color:var(--text-sub);font-size:11.5px;">已编辑</span>{% endif %}
+    </div>
+    {% if post.tags %}<div style="margin:10px 0;">
+        {% for t in post.tags %}<span class="tag">#{{ t }}</span>{% endfor %}
+    </div>{% endif %}
+
+    <div style="margin-top:14px;white-space:pre-wrap;line-height:1.85;">{{ post.content }}</div>
+
+    {% if post.media_path %}
+    <div class="media-box">
+        {% if post.media_type == 'image' %}
+        <img class="post-media" src="/uploads/{{ post.media_path }}">
+        {% else %}
+        <video class="post-media" src="/uploads/{{ post.media_path }}" controls></video>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="post-foot" style="margin-top:20px;">
+        <form method="post" action="/post/{{ post.id }}/like" style="display:inline;">
+            <button class="btn {% if now_user in post.likes %}btn-primary{% else %}btn-ghost{% endif %} btn-sm" type="submit">
+                {% if now_user in post.likes %}❤️ 已赞{% else %}🤍 点赞{% endif %}（{{ post.likes|length }}）
+            </button>
+        </form>
+        <div class="post-actions">
+            {% if now_user == post.author %}
+            <a class="btn btn-ghost btn-sm" href="/post/{{ post.id }}/edit">✏️编辑</a>
+            <form method="post" action="/post/{{ post.id }}/delete" style="display:inline;" onsubmit="return confirm('确定删除该文章？');">
+                <button class="btn btn-danger btn-sm" type="submit">🗑️删除</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</article>
+
+<section class="card">
+    <div class="form-label" style="font-size:15px;color:var(--text);">💬 评论（{{ comments|length }}）</div>
+    {% if now_user %}
+    <form method="post" action="/post/{{ post.id }}/comment">
+        <textarea name="text" placeholder="写下你的评论…" required style="min-height:80px;"></textarea>
+        <button class="btn btn-primary btn-sm" type="submit">发表评论</button>
+    </form>
+    {% else %}
+    <div style="font-size:13.5px;color:var(--text-sub);">请先 <a href="/login">登录</a> 后参与评论。</div>
+    {% endif %}
+
+    <div style="margin-top:8px;">
+        {% if comments %}
+            {% for c in comments %}
+            <div class="comment">
+                <div class="avatar" style="width:34px;height:34px;font-size:13px;">{{ c.author[0]|upper }}</div>
+                <div class="c-body">
+                    <div class="c-head">
+                        <span class="c-name">{{ c.author }}</span>
+                        <span class="c-time">{{ c.created_at[:16].replace('T',' ') }}{% if c.updated_at %} · 已编辑{% endif %}</span>
+                    </div>
+                    {% if now_user == c.author %}
+                        <form method="post" action="/comment/{{ c.id }}/edit" class="c-form">
+                            <textarea name="text" required style="min-height:60px;">{{ c.text }}</textarea>
+                            <div style="display:flex;gap:8px;margin-top:6px;">
+                                <button class="btn btn-primary btn-sm" type="submit">保存</button>
+                                <a class="btn btn-ghost btn-sm" href="/post/{{ post.id }}">取消</a>
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="c-bubble">{{ c.text }}</div>
+                    {% endif %}
+                    {% if now_user == c.author %}
+                    <div class="c-actions">
+                        <a class="btn btn-ghost btn-sm" href="/post/{{ post.id }}?edit={{ c.id }}">✏️编辑</a>
+                        <form method="post" action="/comment/{{ c.id }}/delete" style="display:inline;" onsubmit="return confirm('删除该评论？');">
+                            <button class="btn btn-danger btn-sm" type="submit">🗑️删除</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty" style="padding:20px 0;">还没有评论，来抢沙发吧～</div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

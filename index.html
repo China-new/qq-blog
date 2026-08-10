@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}首页 · 简易博客{% endblock %}
+{% block page_title %}首页{% endblock %}
+{% block content %}
+<form class="filter-bar" method="get">
+    <label class="form-label" for="q">搜索</label>
+    <input id="q" class="search-input" type="search" name="q" value="{{ q or '' }}" placeholder="搜索标题 / 正文 / 标签…">
+    <label class="form-label" for="category">分类</label>
+    <select id="category" name="category" onchange="this.form.submit()">
+        <option value="">全部分类</option>
+        {% for c in categories %}
+        <option value="{{ c }}" {% if cur_cat==c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+    </select>
+    <label class="form-label" for="tag">标签</label>
+    <select id="tag" name="tag" onchange="this.form.submit()">
+        <option value="">全部标签</option>
+        {% for t in all_tags %}
+        <option value="{{ t }}" {% if cur_tag==t %}selected{% endif %}>#{{ t }}</option>
+        {% endfor %}
+    </select>
+    <button class="btn btn-primary btn-sm" type="submit">筛选</button>
+    {% if cur_cat or cur_tag or q %}
+    <a class="btn btn-ghost btn-sm" href="/">清除</a>
+    {% endif %}
+</form>
+
+<div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
+    <div style="flex:1;min-width:0;">
+        {% if posts %}
+            {% for p in posts %}
+            <article class="card card-hover">
+                <h2 class="post-title"><a href="/post/{{ p.id }}">{{ p.title }}</a></h2>
+                <div class="meta">
+                    <span>👤 {{ p.author }}</span>
+                    <span class="dot"></span>
+                    <span>🕘 {{ p.created_at[:16].replace('T',' ') }}</span>
+                    {% if p.category %}<span class="dot"></span><span class="cat-chip">📁 {{ p.category }}</span>{% endif %}
+                    <span class="dot"></span><span>❤️ {{ p.likes|length }}</span>
+                </div>
+                {% if p.tags %}<div style="margin:8px 0">
+                    {% for t in p.tags %}<span class="tag">#{{ t }}</span>{% endfor %}
+                </div>{% endif %}
+                <div class="post-body">{{ p.content }}</div>
+                <div class="post-foot">
+                    <a class="btn btn-ghost btn-sm" href="/post/{{ p.id }}">阅读全文 →</a>
+                    <div class="post-actions">
+                        {% if now_user == p.author %}
+                        <a class="btn btn-ghost btn-sm" href="/post/{{ p.id }}/edit">✏️编辑</a>
+                        <form method="post" action="/post/{{ p.id }}/delete" style="display:inline" onsubmit="return confirm('确定删除该文章？');">
+                            <button class="btn btn-danger btn-sm" type="submit">🗑️删除</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        {% else %}
+            <div class="card empty">
+                <div class="empty-ico">📭</div>
+                <div>暂无文章{% if cur_cat or cur_tag or q %}，换个筛选条件试试{% endif %}</div>
+            </div>
+        {% endif %}
+    </div>
+
+    <aside style="width:240px;flex-shrink:0;">
+        <div class="card">
+            <div class="form-label" style="margin-bottom:10px;">🔥 热门文章</div>
+            {% if hot_posts %}
+            <ul class="hot-list">
+                {% for hp in hot_posts %}
+                <li>
+                    <span class="hot-rank {% if loop.index<=3 %}top{% endif %}">{{ loop.index }}</span>
+                    <a href="/post/{{ hp.id }}">{{ hp.title }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="empty" style="padding:10px 0;">暂无数据</div>
+            {% endif %}
+        </div>
+    </aside>
+</div>
+{% endblock %}
